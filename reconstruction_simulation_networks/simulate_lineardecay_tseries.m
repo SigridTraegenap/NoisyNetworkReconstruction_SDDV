@@ -1,12 +1,22 @@
 function [x_all, x_tau_all, dt_x_all, dt_x_all_v2, adjacency, betas] = simulate_lineardecay_tseries(...
     sigma,num_simulations,coupling, num_nodes, n_incoming, T, delta_t,...
-    res,initial_cond)
+    res,initial_cond, varargin)
+
+if nargin>9
+    betas=varargin{1};
+    adjacency=varargin{2};
+else
+    [betas,adjacency]=setup_NW(num_nodes, n_incoming, coupling, 1);    
+end
+
+
 Ncoarse = T/res -1;
-[betas,adjacency]=setup_NW(num_nodes, n_incoming, coupling, 1);
+
 x_all=nan(num_nodes,num_simulations*(Ncoarse-1));
 dt_x_all=nan(num_nodes,num_simulations*(Ncoarse-1));
 x_tau_all=nan(num_nodes,num_simulations*(Ncoarse-1));
 dt_x_all_v2=nan(num_nodes,num_simulations*(Ncoarse-2));
+
 for isim=1:num_simulations
     [~,activitiyC]=simulate_networknoise(betas,adjacency,T,delta_t, res, sigma,initial_cond);     
     [~, x_tau, derivative]=time_derivative_approx(activitiyC, T, res);  

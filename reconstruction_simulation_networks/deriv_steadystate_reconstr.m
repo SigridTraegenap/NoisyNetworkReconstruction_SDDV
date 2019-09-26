@@ -1,4 +1,4 @@
-function [df_reconstr]=deriv_steadystate_reconstr(x_all, dt_x_all, steady_state_all)
+function [df_reconstr]=deriv_steadystate_reconstr(x_all, dt_x_all, varargin)
 %reconstruct possible connectivites (inouts) for single nodes
 %use ML-estimates of weights contributing to target (dt_activity) and
 %possible inputs (activity_mat)
@@ -6,6 +6,12 @@ function [df_reconstr]=deriv_steadystate_reconstr(x_all, dt_x_all, steady_state_
 %ignore self-connectivity (decay terms), set to zero in both reconstruction
 %and actual values
 [num_nodes, num_steps]=size(x_all);
+if nargin>2
+    steady_state_all=varargin{1};
+else
+    steady_state_all=zeros(num_nodes,1);
+end
+
 df_reconstr=nan(num_nodes, num_nodes);
 for inode=1:num_nodes
     dt_activity=dt_x_all(inode,:);

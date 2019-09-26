@@ -4,7 +4,7 @@ close all;
 %simulate noisy time series in a sparse, coupled network
 
 %add all higher order code
-addpath("..\reconstruction_simulation_networks\")
+addpath("../reconstruction_simulation_networks/")
 
 
 
