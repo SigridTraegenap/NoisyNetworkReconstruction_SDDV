@@ -1,17 +1,21 @@
-function [AUCs]=reconstruction_3papprox(x_all, dt_x_all_v2, adjacency, num_nodes)
+function [AUCs]=OLD_reconstruction_2p_approx(x_tau, dt_x_all, adjacency, num_nodes)
+%reconstruct network connectivity based on approximation of activity and
+%time derivative at point tau
 steady_state_all=zeros(num_nodes,1);
-%x_all = x_all(:,2:end-1);
-%input to the functions should have same length 
-%need to cut input x_all in outer function
-df_reconstr=deriv_steadystate_reconstr(x_all, dt_x_all_v2, steady_state_all);
+df_reconstr=deriv_steadystate_reconstr(x_tau, dt_x_all, steady_state_all);
 bin_adjacency = adjacency;
 bin_adjacency(bin_adjacency>0)=1;
-%bin_adjacency(logical(eye(size(bin_adjacency)))) = 1.;
 
-bin_adjacency= reshape(bin_adjacency, num_nodes*num_nodes,1);
-df_reconstr=reshape(df_reconstr, num_nodes*num_nodes,1);                                         
-[~,~,~,AUCs] = perfcurve(bin_adjacency,...
-                abs(df_reconstr), 1);
+%flatten both
+%combined reconstruction
+
+%old version
+AUCs=zeros(num_nodes,1);
+for inode=1:num_nodes
+    [~,~,~,AUC] = perfcurve(bin_adjacency(inode,1:end),...
+                abs(df_reconstr(inode,1:end)), 1);
+    AUCs(inode,1)=AUC ; 
+end
 
 
 function [df_reconstr]=deriv_steadystate_reconstr(x_tau, dt_x_all, steady_state_all)

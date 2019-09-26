@@ -19,7 +19,8 @@ couplings=[1];  %coupling strength
 num_simulations=1;  %how many simulations to perform 
 
 %noise
-sigma = 10^-1;
+sigma = 10^-5;
+sigma_add=1/6*10^-3;
 
 %where to save data
 save_string=sprintf('simulations/data_linear_T%d_dt%0.0e_Nnodes%d_Nincoming%d_sigma%0.0e',...
@@ -40,37 +41,37 @@ end
 
 %% without rounding or noise
 
-all_AUCS=zeros(Ntotal,num_nodes);
+all_AUCS=zeros(Ntotal,1);
 for isim=1:Ntotal
     load(sprintf(strcat(save_string, "precisiontest_I%d.mat"), isim));
     [AUCs]=reconstruction_2p_approx(x_tau_all,...
                                    dt_x_all, adjacency,num_nodes);
-    all_AUCS(isim,:)=AUCs;
+    all_AUCS(isim)=AUCs;
 end
 
 save(sprintf("simulations/summary_2palg_precisionfull_S%0.0e.mat", sigma),  'all_AUCS');
 
 %% with rounding
 
-all_AUCS=zeros(Ntotal,num_nodes);
+all_AUCS=zeros(Ntotal,1);
 for isim=1:Ntotal
     load(sprintf(strcat(save_string, "precisiontest_I%d.mat"), isim));
     [AUCs]=reconstruction_2p_approx(round(x_tau_all,3),...
                                    round(dt_x_all,3), adjacency,num_nodes);
-    all_AUCS(isim,:)=AUCs;
+    all_AUCS(isim)=AUCs;
 end
 
 save(sprintf("simulations/summary_2palg_precisionround_S%0.0e.mat", sigma),  'all_AUCS');
 
 %% with additional noise
 
-all_AUCS=zeros(Ntotal,num_nodes);
+all_AUCS=zeros(Ntotal,1);
 for isim=1:Ntotal
     load(sprintf(strcat(save_string, "precisiontest_I%d.mat"), isim));
-    [AUCs]=reconstruction_2p_approx(x_tau_all + 1/6*sigma*randn(size(x_tau_all)),... 
-                                   dt_x_all+ 1/6*sigma*randn(size(dt_x_all)),...
+    [AUCs]=reconstruction_2p_approx(x_tau_all + sigma_add*randn(size(x_tau_all)),... 
+                                   dt_x_all+sigma_add*randn(size(dt_x_all)),...
                                    adjacency,num_nodes);
-    all_AUCS(isim,:)=AUCs;
+    all_AUCS(isim)=AUCs;
 end
 
 save(sprintf("simulations/summary_2palg_precisionaddnoise_S%0.0e.mat", sigma),  'all_AUCS');
@@ -84,13 +85,13 @@ save(sprintf("simulations/summary_2palg_precisionaddnoise_S%0.0e.mat", sigma),  
 
 %load wo loss of precision
 load(sprintf("simulations/summary_2palg_precisionfull_S%0.0e.mat", sigma))
-auc_wonoise = mean(all_AUCS,2);
+auc_wonoise = all_AUCS;
 %load with rounding
 load(sprintf("simulations/summary_2palg_precisionround_S%0.0e.mat", sigma))
-auc_round = mean(all_AUCS,2);
+auc_round = all_AUCS;
 %load with additional noise
 load(sprintf("simulations/summary_2palg_precisionaddnoise_S%0.0e.mat", sigma))
-auc_addnoise = mean(all_AUCS,2);
+auc_addnoise = all_AUCS;
 
 xdata1 = ones(size(auc_wonoise)) + randn(size(auc_wonoise))*0.1;
 xdata2 = ones(size(auc_wonoise))*2 + randn(size(auc_wonoise))*0.1;

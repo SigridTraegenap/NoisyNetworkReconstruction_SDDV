@@ -1,4 +1,4 @@
-function [AUCs]=reoncstruction_nextstep(x_all, ~, adjacency, num_nodes)
+function [AUCs]=reconstruction_nextstep(x_all, adjacency, num_nodes)
 steady_state_all=zeros(num_nodes,1);
 df_reconstr=deriv_steadystate_reconstr(x_all);
 bin_adjacency = adjacency;

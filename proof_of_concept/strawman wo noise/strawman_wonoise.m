@@ -42,7 +42,7 @@ end
 
 
 %% collect results wo noise
-all_AUCS=zeros(Ntotal,num_nodes);
+all_AUCS=zeros(Ntotal,1);
 all_dfs = zeros(Ntotal, num_nodes, num_nodes);
 for isim=1:Ntotal
     load(sprintf(strcat(save_string, "wo_noise_I%d.mat"), isim));
@@ -51,14 +51,14 @@ for isim=1:Ntotal
     all_dfs(isim,:,:)=df_reconstr;
     [AUCs]=reconstruction_2p_approx(round(x_tau_all,3), ...
                     round(dt_x_all,3), adjacency,num_nodes);
-    all_AUCS(isim,:)=AUCs;
+    all_AUCS(isim)=AUCs;
 end
 
 save("simulations/summary_wo_noise_2palg.mat", 'all_dfs', 'all_AUCS');
 
 
 %% collect results w noise
-all_AUCS=zeros(Ntotal,num_nodes);
+all_AUCS=zeros(Ntotal,1);
 all_dfs = zeros(Ntotal, num_nodes, num_nodes);
 for isim=1:Ntotal
     load(sprintf(strcat(save_string, "w_noise_I%d.mat"), isim));
@@ -67,7 +67,7 @@ for isim=1:Ntotal
     all_dfs(isim,:,:)=df_reconstr;
     [AUCs]=reconstruction_2p_approx(round(x_tau_all,3), ...
                     round(dt_x_all,3), adjacency,num_nodes);
-    all_AUCS(isim,:)=AUCs;
+    all_AUCS(isim)=AUCs;
 end
 disp(mean(all_AUCS(:)));
 save("simulations/summary_w_noise_2palg.mat", 'all_dfs', 'all_AUCS');
@@ -122,10 +122,10 @@ colorbar()
 
 %load wo noise reconstructed
 load("simulations/summary_wo_noise_2palg.mat")
-auc_wonoise = mean(all_AUCS,2);
+auc_wonoise = all_AUCS;
 %load w noise reconstructed
 load("simulations/summary_w_noise_2palg.mat")
-auc_wnoise = mean(all_AUCS,2);
+auc_wnoise = all_AUCS;
 
 xdata1 = ones(size(auc_wonoise)) + randn(size(auc_wonoise))*0.1;
 xdata2 = ones(size(auc_wonoise))*2 + randn(size(auc_wonoise))*0.1;

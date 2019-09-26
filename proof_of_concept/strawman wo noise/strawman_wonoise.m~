@@ -14,7 +14,7 @@ n_incoming=5; %number incoming nodes (sparsity)
 delta_t=0.001;  %fine simulation tscale
 res=0.01;  %coarse reconstruction t-scale
 initial="random"; %specify initial conditions
-T=50;  %how many timesteps are evaluated
+T=100;  %how many timesteps are evaluated
 couplings=[1];  %coupling strength 
 num_simulations=1;  %how many simulations to perform 
 
@@ -42,7 +42,7 @@ end
 
 
 %% collect results wo noise
-all_AUCS=zeros(Ntotal,num_nodes);
+all_AUCS=zeros(Ntotal,1);
 all_dfs = zeros(Ntotal, num_nodes, num_nodes);
 for isim=1:Ntotal
     load(sprintf(strcat(save_string, "wo_noise_I%d.mat"), isim));
@@ -51,14 +51,14 @@ for isim=1:Ntotal
     all_dfs(isim,:,:)=df_reconstr;
     [AUCs]=reconstruction_2p_approx(round(x_tau_all,3), ...
                     round(dt_x_all,3), adjacency,num_nodes);
-    all_AUCS(isim,:)=AUCs;
+    all_AUCS(isim)=AUCs;
 end
 
 save("simulations/summary_wo_noise_2palg.mat", 'all_dfs', 'all_AUCS');
 
 
 %% collect results w noise
-all_AUCS=zeros(Ntotal,num_nodes);
+all_AUCS=zeros(Ntotal,1);
 all_dfs = zeros(Ntotal, num_nodes, num_nodes);
 for isim=1:Ntotal
     load(sprintf(strcat(save_string, "w_noise_I%d.mat"), isim));
@@ -67,7 +67,7 @@ for isim=1:Ntotal
     all_dfs(isim,:,:)=df_reconstr;
     [AUCs]=reconstruction_2p_approx(round(x_tau_all,3), ...
                     round(dt_x_all,3), adjacency,num_nodes);
-    all_AUCS(isim,:)=AUCs;
+    all_AUCS(isim)=AUCs;
 end
 disp(mean(all_AUCS(:)));
 save("simulations/summary_w_noise_2palg.mat", 'all_dfs', 'all_AUCS');
@@ -109,21 +109,35 @@ colorbar()
 
 %% bar/scatter plot
 
+% %load wo noise reconstructed
+% load("simulations/summary_wo_noise_2palg.mat")
+% auc_wonoise = reshape(all_AUCS, Ntotal*num_nodes,1);
+% %load w noise reconstructed
+% load("simulations/summary_w_noise_2palg.mat")
+% auc_wnoise = reshape(all_AUCS, Ntotal*num_nodes,1);
+% 
+% xdata1 = ones(Ntotal*num_nodes,1) + randn(Ntotal*num_nodes,1)*0.1;
+% xdata2 = ones(Ntotal*num_nodes,1)*2 + randn(Ntotal*num_nodes,1)*0.1;
+
 
 %load wo noise reconstructed
 load("simulations/summary_wo_noise_2palg.mat")
-auc_wonoise = reshape(all_AUCS, Ntotal*num_nodes,1);
+auc_wonoise = all_AUCS;
 %load w noise reconstructed
 load("simulations/summary_w_noise_2palg.mat")
-auc_wnoise = reshape(all_AUCS, Ntotal*num_nodes,1);
+auc_wnoise = all_AUCS;
 
-xdata1 = ones(Ntotal*num_nodes,1) + randn(Ntotal*num_nodes,1)*0.05;
-xdata2 = ones(Ntotal*num_nodes,1)*2 + randn(Ntotal*num_nodes,1)*0.05;
+xdata1 = ones(size(auc_wonoise)) + randn(size(auc_wonoise))*0.1;
+xdata2 = ones(size(auc_wonoise))*2 + randn(size(auc_wonoise))*0.1;
 
 figure('Name', 'BarScatter_AU')
 scatter(xdata1, auc_wonoise)
 hold on
+scatter(1, mean(auc_wonoise), "ks", 'markerfacecolor', 'k')
+hold on
 scatter(xdata2, auc_wnoise)
+hold on
+scatter(2, mean(auc_wnoise), "ks", 'markerfacecolor', 'k')
 ylabel("AUC")
-ax.XTick=[1,2];
-xticklabels["w\o noise", "w\ noise"];
+xticks([1,2]);
+xticklabels({"w\\o noise", "w\ noise"})
