@@ -22,8 +22,9 @@ num_simulations=1;  %how many simulations to perform
 sigmamin = -5;
 sigmamax = 3;
 %precision
-global sigma_add
-=1/6*10^-3;
+
+sigma_add=1/6*10^-3;
+
 %where to save data
 
 
@@ -33,26 +34,17 @@ Ntotal=10;
 
 
 %lower res, same dt
-delta_t=0.001; %fine simulation tscale
-res=0.1;       %coarse simulations scale, used for reconstruction
-simulate=false;
-simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,...
-                       Ntotal,num_simulations,couplings,num_nodes,...
-                         n_incoming, T, delta_t, res,initial, simulate)
-% %lower dt, same res
-% delta_t=0.0001;
-% res=0.01;
-% simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,...
-%                        Ntotal,num_simulations,couplings,num_nodes,...
-%                          n_incoming, T, delta_t, res,initial)
-% %both smaller
-% delta_t=0.0001;
-% res=0.001;
-% simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,...
-%                        Ntotal,num_simulations,couplings,num_nodes,...
-%                          n_incoming, T, delta_t, res,initial)
+ delta_t=0.001; %fine simulation tscale
+ res=0.01;       %coarse simulations scale, used for reconstruction
+beta
+simulate=true;
+ simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
+                        Ntotal,num_simulations,couplings,num_nodes,...
+                          n_incoming, T, delta_t, res,initial, simulate)
 
-function simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,...
+
+
+function simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
                        Ntotal,num_simulations,couplings,num_nodes,...
                          n_incoming, T, delta_t, res,initial, simulate)
 %given parameters

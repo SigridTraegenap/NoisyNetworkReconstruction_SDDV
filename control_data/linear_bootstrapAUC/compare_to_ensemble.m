@@ -24,9 +24,9 @@ sigmamax = 3;
 sigma_add=1/6*10^-3;
 %where data are saved
 sim_path = strcat(newdir,'/proof_of_concept/linear_sigma/');
-save_string=sprintf('simulations/data_linear_T%d_dt%0.0e_Nnodes%d_Nincoming%d_sigma%d-%d',...
+save_stringgGEN=sprintf('simulations/data_linear_T%d_dt%0.0e_Nnodes%d_Nincoming%d_sigma%d-%d',...
     T,delta_t, num_nodes, n_incoming, sigmamin, sigmamax);
-save_string = strcat(sim_path, save_string);
+save_stringgGEN = strcat(sim_path, save_stringgGEN);
 
 Nnoise = 50;
 Ntotal=10;
@@ -37,8 +37,8 @@ Nens=500;
 all_W = zeros(Nens, num_nodes, num_nodes);
 for iens=1:Nens
     alpha=couplings(1);
-    [betas,adjacency]=setup_NW(num_nodes, n_incoming, coupling, beta)
-    all_W(iens,:,:)=adjancency;
+    [betas,adjacency]=setup_NW(num_nodes, n_incoming, alpha, 1);
+    all_W(iens,:,:)=adjacency;
 end
 
 %% loop over timeseries, reconstruct and compare to ensemble matrices (inner loop)
@@ -47,29 +47,48 @@ end
 
 all_AUCS = zeros(Nnoise, Ntotal, Nens);
 
-for is=1:size(pre_s,2) 
+for is=1:Nnoise 
     for irep=1:Ntotal
-        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
+        load(sprintf(strcat(save_stringgGEN, "_S%d_I%d.mat"), is, irep));  
          if sum(isnan(x_all(:)))>0
             all_AUCS(is, irep,:)=NaN;
          else
             %reconstruct
-            [df_reconstr]=deriv_steadystate_reconstr(x_all)
+            [df_reconstr]=deriv_steadystate_reconstr(x_all);
             %loop over ensemble
             for iens=1:Nens
-            [AUCs]=perfcurve_reconstr(df_reconstr, all_W(iens,:,:), num_nodes)
-            all_AUCS(is, irep, iens)=AUCs
+            [AUCs]=perfcurve_reconstr(df_reconstr, all_W(iens,:,:), num_nodes);
+            all_AUCS(is, irep, iens)=AUCs;
             end
          end
     end
 end
 
-all_AUCS = reshape(all_AUCS,Nnoise*Ntotal*Nens); 
+all_AUCS = reshape(all_AUCS,Nnoise*Ntotal*Nens,1); 
 
 save(sprintf('AUC_ensemble_linear_sigma%d-%d_dt%0.0e_res%0.0e',...
     sigmamin, sigmamax, delta_t, res), ...
     'all_AUCS')
 
+
+%% option 2 compare activity ensembles
+clear all_AUCS
+
+all_AUCS = zeros(Nnoise, Ntotal, Nens);
+counter=1;
+for iens=1:Nens
+    for jens=(iens+1):Nens        
+        [AUCs]=perfcurve_reconstr(all_W(iens,:,:), all_W(iens,:,:), num_nodes);
+        all_AUCS(counter)=AUCs;
+        counter=1;
+    end
+end 
+
+save(sprintf('AUC_withinensemble_linear_sigma%d-%d_dt%0.0e_res%0.0e',...
+    sigmamin, sigmamax, delta_t, res), ...
+    'all_AUCS')
+
+%%
 
 function [AUCs]=perfcurve_reconstr(df_reconstr, adjacency, num_nodes)
 bin_adjacency = adjacency;

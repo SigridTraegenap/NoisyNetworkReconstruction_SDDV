@@ -4,7 +4,11 @@ function [x_all, x_tau_all, dt_x_all, dt_x_all_v2, adjacency, betas] = simulate_
 
 if nargin>9
     betas=varargin{1};
+    if nargin>10
     adjacency=varargin{2};
+    else
+        [~,adjacency]=setup_NW(num_nodes, n_incoming, coupling, 1);
+    end
 else
     [betas,adjacency]=setup_NW(num_nodes, n_incoming, coupling, 1);    
 end
