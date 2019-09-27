@@ -22,19 +22,57 @@ num_simulations=1;  %how many simulations to perform
 sigmamin = -5;
 sigmamax = 3;
 %precision
+
 sigma_add=1/6*10^-3;
+
 %where to save data
-save_string=sprintf('simulations/data_cubic_T%d_dt%0.0e_Nnodes%d_Nincoming%d_sigma%d-%d',...
-    T,delta_t, num_nodes, n_incoming, sigmamin, sigmamax);
+
 
 Nnoise = 50;
 Ntotal=10;
+
+
+
+%lower res, same dt
+% delta_t=0.001; %fine simulation tscale
+% res=0.1;       %coarse simulations scale, used for reconstruction
+% simulate=false;
+% simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
+%                        Ntotal,num_simulations,couplings,num_nodes,...
+%                          n_incoming, T, delta_t, res,initial, simulate)
+%lower dt, same res
+simulate=true;
+delta_t=0.0001;
+res=0.01;
+simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
+                       Ntotal,num_simulations,couplings,num_nodes,...
+                         n_incoming, T, delta_t, res,initial, simulate)
+
+                     
+% %both smaller, too expensive in space!
+% delta_t=0.0001;
+% res=0.001;
+% simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
+%                        Ntotal,num_simulations,couplings,num_nodes,...
+%                          n_incoming, T, delta_t, res,initial, simulate)
+
+function simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
+                       Ntotal,num_simulations,couplings,num_nodes,...
+                         n_incoming, T, delta_t, res,initial, simulate)
+%given parameters
+%this function first simulated tseries witha  cubic decay
+%reconstructs the connectivity matrices for both rounding and additional
+%noise
+%calculates SNR ration
+disp(sigma_add);
+save_string=sprintf('simulations/data_cubic_T%d_dt%0.0e_Nnodes%d_Nincoming%d_sigma%d-%d',...
+    T,delta_t, num_nodes, n_incoming, sigmamin, sigmamax);
 
 pre_s=linspace(sigmamin,sigmamax,Nnoise);
 pre_s= power(10,pre_s);  %log-spacing of noise
 %% simulate timeseries
 
-
+if simulate
 alpha=couplings(1);
 for is=1:size(pre_s,2)
     sigma=pre_s(is);   
@@ -45,12 +83,12 @@ for is=1:size(pre_s,2)
         save(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));    
     end
 end
+end
 
 %% collect results for 2p algorithms, rounding
 all_AUCS = zeros(Nnoise, Ntotal);
 
-for is=1:size(pre_s,2)
- 
+for is=1:size(pre_s,2) 
     for irep=1:Ntotal
         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
          if sum(isnan(x_all(:)))>0
@@ -170,8 +208,70 @@ save(sprintf('simulations/summary_nextstep_addnoise_sigma%d-%d_dt%_dt%0.0e_res%0
     'all_AUCS')
 
 
-%% plotting
-pre_s=linspace(sigmamin,sigmamax,Nnoise);
-pre_s= power(10,pre_s);  %log-spacing of noise
+%% collect SNR, rounding
+all_sd = zeros(Nnoise, Ntotal, num_nodes);
+
+for is=1:Nnoise 
+    var=pre_s(is)^2;
+    for irep=1:Ntotal
+        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep)); 
+        if sum(isnan(x_all(:)))>0
+            all_sd(is, irep,:)=NaN;
+         else
+        x_all_noise = round(x_all(:,int16(end/2):end), 3);
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        all_sd(is, irep,:)=sds;
+        end
+    end
+end
+
+save(sprintf('simulations/summary_std_sigma_round_sigma%d-%d_dt%0.0e_res%0.0e',...
+    sigmamin, sigmamax, delta_t, res), ...
+    'all_sd')
+
+%% collect SNR, add noise
+all_sd = zeros(Nnoise, Ntotal, num_nodes);
+
+for is=1:Nnoise 
+    var=pre_s(is)^2;
+    for irep=1:Ntotal
+        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
+        if sum(isnan(x_all(:)))>0
+            all_sd(is, irep,:)=NaN;
+         else
+        x_all_noise = x_all(:,int16(end/2):end);
+        x_all_noise = x_all_noise + sigma_add*randn(size(x_all_noise));
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        all_sd(is, irep,:)=sds;
+        end
+    end
+end
+
+save(sprintf('simulations/summary_std_sigma_addnoise_sigma%d-%d_dt%0.0e_res%0.0e',...
+    sigmamin, sigmamax, delta_t, res), ...
+    'all_sd')
+
+%% collect SNR, full precision
+all_sd = zeros(Nnoise, Ntotal, num_nodes);
+
+for is=1:Nnoise 
+    var=pre_s(is)^2;
+    for irep=1:Ntotal
+        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
+        if sum(isnan(x_all(:)))>0
+            all_sd(is, irep,:)=NaN;
+         else
+        x_all_noise = x_all(:,int16(end/2):end);        
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        all_sd(is, irep,:)=sds;
+        end
+    end
+end
+
+save(sprintf('simulations/summary_std_sigmafullprec_sigma%d-%d_dt%0.0e_res%0.0e',...
+    sigmamin, sigmamax, delta_t, res), ...
+    'all_sd')
+
+end
 
 
