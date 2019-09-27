@@ -2,7 +2,9 @@
 Simulation of noisy coupled networks and the subsequent reconstruction; Simulations and Code
 
 reconstruction_network_simulation: contains matlab functions for simulating time series and reconstruction algorithms (method *2p_alg*: approximate activity f and time derivative cdot at t<tau<(t+delta t) with f=0.5*(f(t)+f(t+delta t) and xdot = 1/delta t * f(t+delta t) - f(t)
+
 *3p_alg*: approximate time derivative at time t with f(t+delta t) - f(t-delta t), use activity at time t, 
+
 *nextstep_alg*: reconstruct with f(x+ delta t) = A* f(x)
 
 proof of concept: 
