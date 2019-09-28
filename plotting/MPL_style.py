@@ -4,7 +4,13 @@ from matplotlib import rc
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
 #rc('text', usetex=True)
+# Say, "the default sans-serif font is COMIC SANS"
+#matplotlib.rcParams['font.sans-serif'] = "Comic Sans MS"
+# Then, "ALWAYS use sans-serif fonts"
+#matplotlib.rcParams['font.family'] = "sans-serif"
 params = {
+    'font.family': "sans-serif",
+    'font.sans-serif': "CMU Sans Serif",
    'axes.labelsize': 18,
    'axes.spines.top'  : False ,
    'axes.spines.right'  : False ,
