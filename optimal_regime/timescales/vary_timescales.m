@@ -34,14 +34,14 @@ Ntotal=10;
 
 
 %lower res, same dt
-% delta_t=0.001; %fine simulation tscale
-% res=0.1;       %coarse simulations scale, used for reconstruction
-% simulate=false;
-% simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
-%                        Ntotal,num_simulations,couplings,num_nodes,...
-%                          n_incoming, T, delta_t, res,initial, simulate)
+delta_t=0.001; %fine simulation tscale
+res=0.1;       %coarse simulations scale, used for reconstruction
+simulate=false;
+%simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
+%                       Ntotal,num_simulations,couplings,num_nodes,...
+%                         n_incoming, T, delta_t, res,initial, simulate)
 %lower dt, same res
-simulate=true;
+simulate=false;
 delta_t=0.0001;
 res=0.01;
 simulate_reconstruct_SNR(Nnoise, sigmamin, sigmamax,sigma_add,...
@@ -85,127 +85,127 @@ for is=1:size(pre_s,2)
 end
 end
 
-%% collect results for 2p algorithms, rounding
-all_AUCS = zeros(Nnoise, Ntotal);
-
-for is=1:size(pre_s,2) 
-    for irep=1:Ntotal
-        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
-         if sum(isnan(x_all(:)))>0
-            all_AUCS(is, irep)=NaN;
-         else
-            [AUCs]=reconstruction_2p_approx(round(x_tau_all,3), ...
-                        round(dt_x_all,3), adjacency,num_nodes);
-            all_AUCS(is, irep)=AUCs;
-         end
-    end
-end
-
-save(sprintf('simulations/summary_2p_round_sigma%d-%d_dt%0.0e_res%0.0e',...
-    sigmamin, sigmamax, delta_t, res), ...
-    'all_AUCS')
-%% collect results for 2p alg, add noise
-all_AUCS = zeros(Nnoise, Ntotal);
-
-for is=1:Nnoise
-    for irep=1:Ntotal
-        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
-        if sum(isnan(x_all(:)))>0
-            all_AUCS(is, irep)=NaN;
-         else
-        [AUCs]=reconstruction_2p_approx(x_tau_all + sigma_add*randn(size(x_tau_all)), ...
-                    dt_x_all + sigma_add*randn(size(dt_x_all)), ...
-                    adjacency,num_nodes);
-        all_AUCS(is, irep)=AUCs;
-        end
-    end
-end
-
-save(sprintf('simulations/summary_2p_addnoise_sigma%d-%d_dt%0.0e_res%0.0e',...
-    sigmamin, sigmamax, delta_t, res), ...
-    'all_AUCS')
-
-%% collect results for 3p algorithms, rounding
-all_AUCS = zeros(Nnoise, Ntotal);
-
-for is=1:size(pre_s,2)
- 
-    for irep=1:Ntotal
-        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));    
-        if sum(isnan(x_all(:)))>0
-            all_AUCS(is, irep)=NaN;
-         else
-        [AUCs]=reconstruction_3papprox(round(x_all(:,2:end-1),3), ...
-                    round(dt_x_all_v2,3), adjacency,num_nodes);
-        all_AUCS(is, irep)=AUCs;
-        end
-    end
-end
-
-save(sprintf('simulations/summary_3p_round_sigma%d-%d_dt%0.0e_res%0.0e',...
-    sigmamin, sigmamax, delta_t, res), ...
-    'all_AUCS')
-%% collect results for 3p alg, add noise
-all_AUCS = zeros(Nnoise, Ntotal);
-
-for is=1:Nnoise
-    for irep=1:Ntotal
-        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep)); 
-        x_all=x_all(:,2:end-1); 
-        if sum(isnan(x_all(:)))>0
-            all_AUCS(is, irep)=NaN;
-         else
-        [AUCs]=reconstruction_3papprox(x_all + sigma_add*randn(size(x_all)), ...
-                    dt_x_all_v2 + sigma_add*randn(size(dt_x_all_v2)), ...
-                    adjacency,num_nodes);
-        all_AUCS(is, irep)=AUCs;
-        end
-    end
-end
-
-save(sprintf('simulations/summary_3p_addnoise_sigma%d-%d_dt%0.0e_res%0.0e',...
-    sigmamin, sigmamax, delta_t, res), ...
-    'all_AUCS')
-%% nextstep alg, rounding
-
-all_AUCS = zeros(Nnoise, Ntotal);
-
-for is=1:Nnoise
-    for irep=1:Ntotal
-        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep)); 
-        if sum(isnan(x_all(:)))>0
-            all_AUCS(is, irep)=NaN;
-         else
-        [AUCs]=reconstruction_nextstep(round(x_all,3), ...
-                                    adjacency,num_nodes);
-        all_AUCS(is, irep)=AUCs;
-        end
-    end
-end
-
-save(sprintf('simulations/summary_nextstep_round_sigma%d-%d_dt%0.0e_res%0.0e',...
-    sigmamin, sigmamax, delta_t, res), ...
-    'all_AUCS')
-
-%% nextstep alg, add noise
-
-all_AUCS = zeros(Nnoise, Ntotal);
-
-for is=1:Nnoise
-    for irep=1:Ntotal
-        load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
-        if sum(isnan(x_all(:)))>0
-            all_AUCS(is, irep)=NaN;
-         else
-        [AUCs]=reconstruction_nextstep(x_all + sigma_add*randn(size(x_all)), ...
-                                    adjacency,num_nodes);
-        all_AUCS(is, irep)=AUCs;
-        end
-    end
-end
-save(sprintf('simulations/summary_nextstep_addnoise_sigma%d-%d_dt%_dt%0.0e_res%0.0e',...
-    sigmamin, sigmamax, delta_t, res), ...
-    'all_AUCS')
+% %% collect results for 2p algorithms, rounding
+% all_AUCS = zeros(Nnoise, Ntotal);
+% 
+% for is=1:size(pre_s,2) 
+%     for irep=1:Ntotal
+%         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
+%          if sum(isnan(x_all(:)))>0
+%             all_AUCS(is, irep)=NaN;
+%          else
+%             [AUCs]=reconstruction_2p_approx(round(x_tau_all,3), ...
+%                         round(dt_x_all,3), adjacency,num_nodes);
+%             all_AUCS(is, irep)=AUCs;
+%          end
+%     end
+% end
+% 
+% save(sprintf('simulations/summary_2p_round_sigma%d-%d_dt%0.0e_res%0.0e',...
+%     sigmamin, sigmamax, delta_t, res), ...
+%     'all_AUCS')
+% %% collect results for 2p alg, add noise
+% all_AUCS = zeros(Nnoise, Ntotal);
+% 
+% for is=1:Nnoise
+%     for irep=1:Ntotal
+%         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
+%         if sum(isnan(x_all(:)))>0
+%             all_AUCS(is, irep)=NaN;
+%          else
+%         [AUCs]=reconstruction_2p_approx(x_tau_all + sigma_add*randn(size(x_tau_all)), ...
+%                     dt_x_all + sigma_add*randn(size(dt_x_all)), ...
+%                     adjacency,num_nodes);
+%         all_AUCS(is, irep)=AUCs;
+%         end
+%     end
+% end
+% 
+% save(sprintf('simulations/summary_2p_addnoise_sigma%d-%d_dt%0.0e_res%0.0e',...
+%     sigmamin, sigmamax, delta_t, res), ...
+%     'all_AUCS')
+% 
+% %% collect results for 3p algorithms, rounding
+% all_AUCS = zeros(Nnoise, Ntotal);
+% 
+% for is=1:size(pre_s,2)
+%  
+%     for irep=1:Ntotal
+%         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));    
+%         if sum(isnan(x_all(:)))>0
+%             all_AUCS(is, irep)=NaN;
+%          else
+%         [AUCs]=reconstruction_3papprox(round(x_all(:,2:end-1),3), ...
+%                     round(dt_x_all_v2,3), adjacency,num_nodes);
+%         all_AUCS(is, irep)=AUCs;
+%         end
+%     end
+% end
+% 
+% save(sprintf('simulations/summary_3p_round_sigma%d-%d_dt%0.0e_res%0.0e',...
+%     sigmamin, sigmamax, delta_t, res), ...
+%     'all_AUCS')
+% %% collect results for 3p alg, add noise
+% all_AUCS = zeros(Nnoise, Ntotal);
+% 
+% for is=1:Nnoise
+%     for irep=1:Ntotal
+%         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep)); 
+%         x_all=x_all(:,2:end-1); 
+%         if sum(isnan(x_all(:)))>0
+%             all_AUCS(is, irep)=NaN;
+%          else
+%         [AUCs]=reconstruction_3papprox(x_all + sigma_add*randn(size(x_all)), ...
+%                     dt_x_all_v2 + sigma_add*randn(size(dt_x_all_v2)), ...
+%                     adjacency,num_nodes);
+%         all_AUCS(is, irep)=AUCs;
+%         end
+%     end
+% end
+% 
+% save(sprintf('simulations/summary_3p_addnoise_sigma%d-%d_dt%0.0e_res%0.0e',...
+%     sigmamin, sigmamax, delta_t, res), ...
+%     'all_AUCS')
+% %% nextstep alg, rounding
+% 
+% all_AUCS = zeros(Nnoise, Ntotal);
+% 
+% for is=1:Nnoise
+%     for irep=1:Ntotal
+%         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep)); 
+%         if sum(isnan(x_all(:)))>0
+%             all_AUCS(is, irep)=NaN;
+%          else
+%         [AUCs]=reconstruction_nextstep(round(x_all,3), ...
+%                                     adjacency,num_nodes);
+%         all_AUCS(is, irep)=AUCs;
+%         end
+%     end
+% end
+% 
+% save(sprintf('simulations/summary_nextstep_round_sigma%d-%d_dt%0.0e_res%0.0e',...
+%     sigmamin, sigmamax, delta_t, res), ...
+%     'all_AUCS')
+% 
+% %% nextstep alg, add noise
+% 
+% all_AUCS = zeros(Nnoise, Ntotal);
+% 
+% for is=1:Nnoise
+%     for irep=1:Ntotal
+%         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
+%         if sum(isnan(x_all(:)))>0
+%             all_AUCS(is, irep)=NaN;
+%          else
+%         [AUCs]=reconstruction_nextstep(x_all + sigma_add*randn(size(x_all)), ...
+%                                     adjacency,num_nodes);
+%         all_AUCS(is, irep)=AUCs;
+%         end
+%     end
+% end
+% save(sprintf('simulations/summary_nextstep_addnoise_sigma%d-%d_dt%_dt%0.0e_res%0.0e',...
+%     sigmamin, sigmamax, delta_t, res), ...
+%     'all_AUCS')
 
 
 %% collect SNR, rounding
@@ -219,7 +219,7 @@ for is=1:Nnoise
             all_sd(is, irep,:)=NaN;
          else
         x_all_noise = round(x_all(:,int16(end/2):end), 3);
-        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2).^2)/var;
         all_sd(is, irep,:)=sds;
         end
     end
@@ -241,7 +241,7 @@ for is=1:Nnoise
          else
         x_all_noise = x_all(:,int16(end/2):end);
         x_all_noise = x_all_noise + sigma_add*randn(size(x_all_noise));
-        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2).^2)/var;
         all_sd(is, irep,:)=sds;
         end
     end
@@ -262,7 +262,7 @@ for is=1:Nnoise
             all_sd(is, irep,:)=NaN;
          else
         x_all_noise = x_all(:,int16(end/2):end);        
-        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2).^2)/var;
         all_sd(is, irep,:)=sds;
         end
     end
