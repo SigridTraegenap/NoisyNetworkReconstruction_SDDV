@@ -40,7 +40,7 @@ for is=1:Nnoise
     for irep=1:Ntotal
         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
         x_all_noise = round(x_all(:,int16(end/2):end), 3);
-        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2).^2)/var;
         all_sd(is, irep,:)=sds;
     end
 end
@@ -57,7 +57,7 @@ for is=1:Nnoise
         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
         x_all_noise = x_all(:,int16(end/2):end);
         x_all_noise = x_all_noise + sigma_add*randn(size(x_all_noise));
-        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2).^2)/var;
         all_sd(is, irep,:)=sds;
     end
 end
@@ -73,7 +73,7 @@ for is=1:Nnoise
     for irep=1:Ntotal
         load(sprintf(strcat(save_string, "_S%d_I%d.mat"), is, irep));  
         x_all_noise = x_all(:,int16(end/2):end);        
-        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2))/var;
+        sds = (std(x_all_noise,0,2).^2 + mean(x_all_noise, 2).^2)/var;
         all_sd(is, irep,:)=sds;
     end
 end
