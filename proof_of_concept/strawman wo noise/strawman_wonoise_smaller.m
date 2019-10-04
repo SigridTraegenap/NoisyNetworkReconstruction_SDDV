@@ -9,8 +9,8 @@ newdir = mydir(1:idcs(end-1)-1);
 addpath(newdir + "/reconstruction_simulation_networks/") 
 
 %define parameters
-num_nodes=30; %number_nodes
-n_incoming=5; %number incoming nodes (sparsity)
+num_nodes=10; %number_nodes
+n_incoming=2; %number incoming nodes (sparsity)
 delta_t=0.001;  %fine simulation tscale
 res=0.01;  %coarse reconstruction t-scale
 initial="random"; %specify initial conditions
@@ -30,11 +30,13 @@ save_string=sprintf('simulations/data_linear_T%d_dt%0.0e_Nnodes%d_Nincoming%d_si
 alpha=couplings(1);
 
 for isim=1:Ntotal
+    rng(isim)
     [x_all, x_tau_all, dt_x_all, dt_x_all_v2, adjacency, betas]  = simulate_lineardecay_tseries(...
                     0,num_simulations,alpha,num_nodes,...
                     n_incoming, T, delta_t, res,initial);
     save(sprintf(strcat(save_string, "wo_noise_I%d.mat"), isim));
 
+    rng(isim)
     [x_all, x_tau_all, dt_x_all, dt_x_all_v2, adjacency, betas]  = simulate_lineardecay_tseries(...
                     sigma,num_simulations,alpha,num_nodes,...
                     n_incoming, T, delta_t, res,initial, betas, adjacency);
@@ -55,7 +57,7 @@ for isim=1:Ntotal
     all_AUCS(isim)=AUCs;
 end
 
-save("simulations/summary_wo_noise_2palg.mat", 'all_dfs', 'all_AUCS');
+save("simulations/summary_smaller_wo_noise_2palg.mat", 'all_dfs', 'all_AUCS');
 
 
 %% collect results w noise
@@ -71,7 +73,7 @@ for isim=1:Ntotal
     all_AUCS(isim)=AUCs;
 end
 disp(mean(all_AUCS(:)));
-save("simulations/summary_w_noise_2palg.mat", 'all_dfs', 'all_AUCS');
+save("simulations/summary_smaller_w_noise_2palg.mat", 'all_dfs', 'all_AUCS');
 
 %% collect results wo noise - nextstep
 all_AUCS=zeros(Ntotal,1);
@@ -85,7 +87,7 @@ for isim=1:Ntotal
     all_AUCS(isim)=AUCs;
 end
 
-save("simulations/summary_wo_noise_nextstepalg.mat", 'all_dfs', 'all_AUCS');
+save("simulations/summary_smaller_wo_noise_nextstepalg.mat", 'all_dfs', 'all_AUCS');
 
 
 %% collect results w noise - nextstep
@@ -100,7 +102,7 @@ for isim=1:Ntotal
     all_AUCS(isim)=AUCs;
 end
 disp(mean(all_AUCS(:)));
-save("simulations/summary_w_noise_nextstepalg.mat", 'all_dfs', 'all_AUCS');
+save("simulations/summary_smaller_w_noise_nextstepalg.mat", 'all_dfs', 'all_AUCS');
 
 %% plot connectivity  matrix (single) and reconstructed matrix
 
@@ -110,10 +112,10 @@ load(sprintf(strcat(save_string, "wo_noise_I%d.mat"), isim));
 adjacency_true = adjacency;
 
 %load wo noise reconstructed
-load("simulations/summary_wo_noise_2palg.mat")
+load("simulations/summary_smaller_wo_noise_nextstepalg.mat")
 adjacency_wonoise = squeeze(all_dfs(isim,:,:));
 %load w noise reconstructed
-load("simulations/summary_w_noise_2palg.mat")
+load("simulations/summary_smaller_w_noise_nextstepalg.mat")
 adjacency_wnoise = squeeze(all_dfs(isim,:,:));
 
 min1 = min(adjacency_true(:));
@@ -126,17 +128,20 @@ max2 = max(adjacency_wonoise(:));
 max3 = max(adjacency_wnoise(:));
 vmax =max(max(max1, max2), max3);
 
-clims = [-max(abs(vmax), abs(vmin)),max(abs(vmax), abs(vmin))]; 
+clims = [0,max(abs(vmax), abs(vmin))]; 
 
 figure('Name', 'Reconstructed connectivity matrix') 
 subplot(131)
-imagesc(adjacency_true, clims)
+imagesc(adjacency_true)
 subplot(132)
-imagesc(adjacency_wonoise, clims)
+imagesc(abs(adjacency_wonoise))
 subplot(133)
-imagesc(adjacency_wnoise, clims)
+imagesc(abs(adjacency_wnoise))
 colorbar()
 
+
+figure(2)
+scatter(reshape(adjacency_true, num_nodes.^2,1), reshape(adjacency_wnoise,num_nodes.^2,1))
 %% bar/scatter plot
 
 % %load wo noise reconstructed
